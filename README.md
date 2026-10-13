@@ -1,6 +1,4 @@
-# **Hardware‑Level Transpiled Results**
-
-## Project layout
+# Project layout
 
 The repository is now organized into a small package structure so it is no longer a single flat folder:
 
@@ -17,7 +15,7 @@ Compatibility shims remain at the project root so existing scripts such as `pyth
 
 All circuits are transpiled using **Qiskit’s Heron backend (FakeTorino)**. After transpilation, we extract native gate statistics (CZ, RZ, SX) and mapped depth using `count_ops()`. All methods use identical transpiler settings.
 
-## Main benchmark results
+# Main benchmark results
 
 | Method | Metric | MNIST-4 | MNIST-10 | LS-48d | LS-64d | HM-48d | HM-64d |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -38,6 +36,8 @@ All circuits are transpiled using **Qiskit’s Heron backend (FakeTorino)**. Aft
 | NRLS (Ours) | Best Acc. | **86.10%** | **58.40%** | **82.50%** | **81.25%** | **96.25%** | **91.25%** |
 | | Mean ± Std | 85.35% ± 0.41% | 58.07% ± 0.18% | 81.0% ± 1.3% | 79.5% ± 1.0% | 92.5% ± 1.37% | 87.8% ± 2.70% |
 | | FakeTorino Acc. | **86.10%** | **52.60%** | **76.25%** | **76.25%** | **95.00%** | **86.25%** |
+
+# **Hardware‑Level Transpiled Results**
 
 ### **Transpiled Metrics and Path counts of the Best‑Found Circuits**
 
