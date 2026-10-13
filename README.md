@@ -1,5 +1,20 @@
 # **Hardware‑Level Transpiled Results**
 
+## Project layout
+
+The repository is now organized into a small package structure so it is no longer a single flat folder:
+
+```text
+nrls/
+  core/        # shared utility and model configuration code
+  data/        # dataset and preprocessing helpers
+  models/      # quantum model, VAE, and classifier implementations
+  search/      # NRLS search, sampling, and scheme logic
+  scripts/     # runnable utilities and evaluation entry points
+```
+
+Compatibility shims remain at the project root so existing scripts such as `python NRLS.py` and `from Arguments import Arguments` keep working while the codebase is gradually migrated to the package tree.
+
 All circuits are transpiled using **Qiskit’s Heron backend (FakeTorino)**. After transpilation, we extract native gate statistics (CZ, RZ, SX) and mapped depth using `count_ops()`. All methods use identical transpiler settings.
 
 ### **Transpiled Metrics and Path counts of the Best‑Found Circuits**

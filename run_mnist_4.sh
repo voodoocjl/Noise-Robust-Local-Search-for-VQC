@@ -1,4 +1,9 @@
 #!/bin/bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="${ROOT_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
+cd "${ROOT_DIR}"
 
 task="{
 'task': 'MNIST_4',
@@ -12,4 +17,4 @@ task="{
 'target_enta_diff': 10
 }"
 
-python hello.py -task "$task"
+python -m nrls.search.NRLS -task "$task"

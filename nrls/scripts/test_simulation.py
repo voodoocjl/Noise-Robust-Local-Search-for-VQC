@@ -20,10 +20,10 @@ from typing import List, Sequence, Tuple
 
 import torch
 import numpy as np
-from Arguments import Arguments
-from datasets import MNISTDataLoaders, qml_Dataloaders
-from schemes_noise import Scheme_eval
-from FusionModel import QNet, single_enta_to_design
+from nrls.core.Arguments import Arguments
+from nrls.data.datasets import MNISTDataLoaders, qml_Dataloaders
+from nrls.search.schemes_noise import Scheme_eval
+from nrls.models.FusionModel import QNet, single_enta_to_design
 
 
 def parse_arch_code_from_csv(arch_code_str):

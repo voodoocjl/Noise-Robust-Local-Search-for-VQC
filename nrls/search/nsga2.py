@@ -5,9 +5,9 @@ import json
 import csv
 import os
 import torch.multiprocessing as mp
-from Arguments import Arguments
-from FusionModel import single_enta_to_design, cir_to_matrix
-from schemes import Scheme, Scheme_eval
+from nrls.core.Arguments import Arguments
+from nrls.models.FusionModel import single_enta_to_design, cir_to_matrix
+from nrls.search.schemes import Scheme, Scheme_eval
 
 # ====================== NSGA2 ======================
 from pymoo.core.problem import Problem

@@ -3,7 +3,7 @@ import ast
 import csv
 from pathlib import Path
 from typing import List, Sequence, Tuple
-from FusionModel import single_enta_to_design
+from nrls.models.FusionModel import single_enta_to_design
 
 import numpy as np
 
