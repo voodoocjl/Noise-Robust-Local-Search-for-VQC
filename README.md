@@ -79,8 +79,6 @@ All circuits are transpiled using **Qiskit’s Heron backend (FakeTorino)**. Aft
 All commands below assume you are in the project root:
 
 ```bash
-cd NRLS_ISCAS
-
 python cleaner.py
 ```
 
