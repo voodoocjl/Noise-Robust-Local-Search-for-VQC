@@ -31,6 +31,8 @@ import pennylane as qml
 from tqdm import tqdm
 from nrls.core.Arguments import Arguments    # Only for setting qml.device()
 from nrls.data.datasets import MNISTDataLoaders
+from nrls.core.MyNoiseModel import create_noise_model, get_chip_config
+
 
 
 def gen_arch(change_code, base_code):        # start from 1, not 0
@@ -306,8 +308,6 @@ class EstimatorQiskitLayer(nn.Module):
         self._cache_transpiled_template()
 
     def _init_backend_and_noisemodel(self, name):
-        from MyNoiseModel import create_noise_model, get_chip_config
-
         if name == 'heron_r1':
             if FakeTorino is None:
                 raise ImportError(
