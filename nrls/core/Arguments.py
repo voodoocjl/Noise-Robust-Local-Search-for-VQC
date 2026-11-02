@@ -40,7 +40,7 @@ class Arguments:
         self.fold        = fold
         self.init_weight = 'init_weight_'+ task
         self.SNR = 0.5
-        self.strategy = 'mix'
+        self.strategy = 'explicit'  # local search only, consistent with the NRLS approach in the paper
         self.qiskit_seed=170
         self.shots=10000
         self.name='yorktown'
