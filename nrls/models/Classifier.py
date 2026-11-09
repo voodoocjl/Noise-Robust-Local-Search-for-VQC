@@ -16,7 +16,7 @@ from nrls.data.prepare import get_list_dimensions
 
 # torch.cuda.is_available = lambda : False
 
-def get_label(energy, tree_height, mean = None):
+def get_label(energy, tree_height, mean = None, layer_energies = None):
     # label = energy.clone()
     # if mean and (mean < float('inf')):
     #     energy_mean = mean
@@ -28,15 +28,17 @@ def get_label(energy, tree_height, mean = None):
     x = energy    
     a = [[i for i in range(len(x))]]
     for i in range(1,tree_height):
+        # each tree layer splits by its own energy when layer_energies is given
+        e = layer_energies[i-1] if layer_energies is not None else x
         t = []
         for j in range(2**(i-1)):        
             index = a[j]
             if len(index):
-                mean = x[index].mean()
+                mean = e[index].mean()
             else:
                 mean = []
-            t.append(torch.tensor([item for item in index if x[item] >= mean]))
-            t.append(torch.tensor([item for item in index if x[item] < mean]))
+            t.append(torch.tensor([item for item in index if e[item] >= mean]))
+            t.append(torch.tensor([item for item in index if e[item] < mean]))
         a = t
     label = torch.zeros((len(x), tree_height-1))
     for i in range(len(a)):
@@ -46,6 +48,12 @@ def get_label(energy, tree_height, mean = None):
                 string_num = bin(i)[2:].zfill(tree_height-1)
                 label[index[j]] = torch.tensor([int(char) for char in string_num])
     return label
+
+def unpack_sample(value):
+    """Return (acc, eps_path, eps_margin); plain scalars are accuracy with no penalties."""
+    if isinstance(value, (tuple, list)):
+        return float(value[0]), float(value[1]), float(value[2])
+    return float(value), 0.0, 0.0
 
 def insert_job(change_code, job):
         if type(job[0]) == type([]):
@@ -121,16 +129,22 @@ class Classifier:
         self.samples = latest_samples        
         if layer == 0:
             sampled_nets = []
-            nets_maeinv  = []
+            nets_values  = []
             for k, v in latest_samples.items():
                 net = json.loads(k)            
                 sampled_nets.append(net)
-                nets_maeinv.append(v)
+                nets_values.append(unpack_sample(v))
             # self.nets = torch.from_numpy(np.asarray(sampled_nets, dtype=np.float32))
             # self.nets = normalize(self.nets)
             self.nets, _ = self.arch_to_z(sampled_nets)
-            self.maeinv = torch.from_numpy(np.asarray(nets_maeinv, dtype=np.float32).reshape(-1, 1))
-            self.labels = get_label(self.maeinv, tree_height)
+            values = np.asarray(nets_values, dtype=np.float32).reshape(-1, 3)
+            acc, eps_path, eps_margin = values[:, 0], values[:, 1], values[:, 2]
+            self.maeinv = torch.from_numpy(acc.reshape(-1, 1))
+            # Root split uses the path-penalized score; deeper splits use the margin-penalized score (Eq. 3, Eq. 6)
+            root_energy = torch.from_numpy((acc - eps_path).reshape(-1, 1))
+            l1_energy = torch.from_numpy((acc - eps_margin).reshape(-1, 1))
+            layer_energies = [root_energy] + [l1_energy] * (tree_height - 2)
+            self.labels = get_label(self.maeinv, tree_height, layer_energies=layer_energies)
             if torch.cuda.is_available():
                 self.nets = self.nets.cuda()
                 self.maeinv = self.maeinv.cuda()
