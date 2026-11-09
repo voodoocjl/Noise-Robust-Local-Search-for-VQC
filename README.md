@@ -195,24 +195,9 @@ python cleaner.py
 
 What it does:
 
+- Run the corresponding search script with `regular: true` first: `bash run_qml_hidden_48d.sh` (set `'regular': True` in it).
 - Evaluates architectures listed in each CSV.
 - Loads matching model weights from each weights folder.
-
-## 8) Draw Circuits From a CSV
-
-The `arch_code` column stores the single-qubit and entangling-gate encoding for
-each circuit. To write one PNG per row:
-
-```bash
-python draw_circuits.py QML_Hidden_48d_mix_reg_fine.csv
-```
-
-Images are written to `QML_Hidden_48d_mix_reg_fine_circuits/`. A different
-destination can be selected with `--output-dir`.
-
-- Writes result CSV beside each input CSV as:
-  - simulation_results/Hidden_48/No margins/fake_backend_QML_Hidden_48d.csv
-  - simulation_results/Hidden_48/Margins/fake_backend_QML_Hidden_48d.csv
 
 ## 7) Hidden-64d Simulation Evaluation (No Margins + Margins)
 
@@ -223,6 +208,7 @@ python cleaner.py
 
 What it does:
 
+- Run the corresponding search script with `regular: true` first: `bash run_qml_hidden_64d.sh` (set `'regular': True` in it).
 - Evaluates architectures listed in each CSV.
 - Loads matching model weights from each weights folder.
 - Writes result CSV beside each input CSV as:
