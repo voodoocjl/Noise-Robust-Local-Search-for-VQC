@@ -11,7 +11,7 @@ task="{
 'n_layers': 4,
 'fold': 1,
 'option': 'mix_reg',
-'regular': False,
+'regular': True,
 'num_processes': 2,
 'enable_group_avg': True,
 'qubit_group_sizes': [6, 6],
