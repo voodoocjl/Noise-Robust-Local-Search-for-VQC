@@ -139,6 +139,20 @@ def evaluate_margin(model, data_loader, args):
     all_margins = torch.cat(margins, dim=0)
     return float(all_margins.mean().item())
 
+def evaluate_margin_penalty(model, data_loader, args, margin_target):
+    """Return mean hinge deficit max(0, margin_target - true-vs-wrong log-prob margin)."""
+    model.eval()
+    outputs, targets = [], []
+    with torch.no_grad():
+        for feed_dict in data_loader:
+            images = feed_dict['image'].to(args.device)
+            outputs.append(model(images, args.n_qubits, args.task))
+            targets.append(feed_dict['digit'].to(args.device))
+    if not outputs:
+        return 0.0
+    penalty = compute_margin_hinge_loss(torch.cat(outputs, dim=0), torch.cat(targets, dim=0), margin_target)
+    return float(penalty.item())
+
 def Scheme_eval(design, task, weight, noise=None):
     result = {}  
     args = Arguments(**task)
@@ -190,7 +204,7 @@ def Scheme(design, task, weight='base', epochs=None, verbs=None, save=None):
             else:            
                 model.load_state_dict(torch.load('init_weights/base_fashion'))
 
-        margin_enabled = bool(task.get('margin_enabled', False))
+        margin_enabled = bool(task.get('regular', False))
         margin_weight = float(task.get('margin_weight', 0.2))
         margin_target = float(task.get('margin_target', 0.3))
         criterion = nn.NLLLoss()
@@ -232,10 +246,13 @@ def Scheme(design, task, weight='base', epochs=None, verbs=None, save=None):
         end = time.time()        
         metrics = evaluate(best_model, test_loader, args)
         margin = evaluate_margin(best_model, test_loader, args)
+        eps_margin = 0.0
+        if margin_enabled:
+            eps_margin = margin_weight * evaluate_margin_penalty(best_model, test_loader, args, margin_target)
         display(metrics)
         print("Running time: %s seconds" % (end - start))
         report = {'train_loss_list': train_loss_list, 'val_loss_list': val_loss_list,
-              'best_val_loss': best_val_loss, 'mae': metrics, 'margin': margin}
+              'best_val_loss': best_val_loss, 'mae': metrics, 'margin': margin, 'eps_margin': eps_margin}
         
         if save:
             torch.save(best_model.state_dict(), 'init_weights/init_weight_' + task['task'])

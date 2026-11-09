@@ -987,8 +987,8 @@ class MCTS:
         performance_per_gate = []
         path_penalty_lambda = float(task.get('path_penalty_lambda', 0.1))
         for i in range(len(jobs)):
-            acc = results[i]
-            job = jobs[i]  
+            acc, eps_margin = results[i]
+            job = jobs[i]
             design = designs[i]
             job_str = json.dumps(job)
             arch = archs[i]
@@ -998,13 +998,14 @@ class MCTS:
             n_gates = gates['uploading'] + gates['single'] + gates['enta'] 
             if regular == True:
                 path_count = path_based_proxy(design_to_adj_matrix(design))
-                p_acc = acc - path_penalty_lambda * math.log10(1+path_count)
+                eps_path = path_penalty_lambda * math.log(1+path_count)
             else:
-                p_acc = acc                  
+                eps_path = 0.0
+                eps_margin = 0.0
+            p_acc = acc - eps_path
             
             performance_per_gate.append(acc/n_gates)
-            # p_acc = acc
-            self.samples[arch_str] = p_acc
+            self.samples[arch_str] = (acc, eps_path, eps_margin)
             self.samples_true[arch_str] = acc
             self.samples_compact[job_str] = p_acc
             sample_node = nodes[i]
@@ -1108,7 +1109,7 @@ def Scheme_mp(design, job, task, weight, i, q=None):
     for j in range(step):
         print('Arch:', job[j])
         _, report = Scheme(design[j], task, weight, epoch, verbs=1)
-        q.put([i*step+j, report['mae']])
+        q.put([i*step+j, report['mae'], report['eps_margin']])
 
 def count_gates(arch, coeff=None):
     # x = [item for i in [2,3,4,1] for item in [1,1,i]]
@@ -1251,19 +1252,19 @@ if __name__ == '__main__':
     # 'target_enta_diff': 10
     # }
 
-    # task = {
-    # 'task': 'QML_Hidden_64d',
-    # 'n_qubits': 16,
-    # 'n_layers': 4,
-    # 'fold': 1,
-    # 'option': 'mix_reg',
-    # 'regular': False,
-    # 'num_processes': 2,
-    # 'enable_group_avg': True,
-    # 'qubit_group_sizes': [8, 8],
-    # 'target_single_diff': 10,
-    # 'target_enta_diff': 10
-    # }
+    task = {
+    'task': 'QML_Hidden_48d',
+    'n_qubits': 12,
+    'n_layers': 4,
+    'fold': 1,
+    'option': 'mix_reg',
+    'regular': True,
+    'num_processes': 2,
+    'enable_group_avg': True,
+    'qubit_group_sizes': [6, 6],
+    'target_single_diff': 10,
+    'target_enta_diff': 10
+    }
 
     # task = {
     # 'task': 'MNIST_4',
@@ -1325,11 +1326,11 @@ if __name__ == '__main__':
                     pool.starmap(Scheme_mp, [(designs[i*step : (i+1)*step], jobs[i*step : (i+1)*step], task, weight_for_mp, i, q) for i in range(num_processes)])            
                     pool.starmap(Scheme_mp, [(designs[n_jobs-i-1 : n_jobs-i], jobs[i*step : (i+1)*step], task, weight_for_mp, n_jobs-i-1, q) for i in range(res)])
                 while not q.empty():
-                    [i, acc] = q.get()
-                    results[i] = acc
+                    [i, acc, eps_margin] = q.get()
+                    results[i] = (acc, eps_margin)
         else:
             for i in range(n_jobs):
-                results[i] = random.uniform(0.75, 0.8)
+                results[i] = (random.uniform(0.75, 0.8), 0.0)
 
         agent.post_search(jobs, results, designs, archs, nodes)
 
